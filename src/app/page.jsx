@@ -27,7 +27,7 @@ export default function Register() {
           <input className="border p-2 rounded" placeholder="Password" {...register("password")} type="password" required />
           <select className="border p-2 rounded" {...register("role")}>
             <option value="student">Student</option>
-            <option value="admin">Admin</option>
+            
           </select>
           <button className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600" type="submit">Register</button>
         </form>
