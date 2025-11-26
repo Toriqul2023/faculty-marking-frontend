@@ -62,7 +62,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Navbar */}
       <nav className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 flex justify-between items-center shadow-lg">
-        <h1 className="text-2xl font-bold tracking-wide">Faculty Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-wide">Faculty Marking Dashboard</h1>
         <button
           onClick={logout}
           className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl shadow transition"
