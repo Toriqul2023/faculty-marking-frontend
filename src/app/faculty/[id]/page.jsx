@@ -13,6 +13,7 @@ export default function FacultyReviewsPage() {
   const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [replyTo, setReplyTo] = useState(null);
+  const [expandedReplies, setExpandedReplies] = useState({}); // track expanded replies
 
   const { register, handleSubmit, reset } = useForm();
 
@@ -25,11 +26,9 @@ export default function FacultyReviewsPage() {
         const resFaculty = await api.get(`/faculty/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         const resReviews = await api.get(`/reviews/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         const resReplies = await api.get(`/reviews/replies/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -47,7 +46,6 @@ export default function FacultyReviewsPage() {
     fetchData();
   }, [id, router]);
 
-  // Submit reply
   const onSubmitReply = async (data) => {
     try {
       const token = localStorage.getItem("token");
@@ -72,7 +70,7 @@ export default function FacultyReviewsPage() {
     }
   };
 
-  // Build tree
+  // Build nested tree
   const buildTree = () => {
     const map = {};
     const tree = [];
@@ -97,46 +95,65 @@ export default function FacultyReviewsPage() {
 
   const nestedReviews = buildTree();
 
-  // Render nested replies
-  const renderReplies = (replies, level = 1) => {
-    return replies.map((r) => (
-      <div key={r._id} style={{ marginLeft: level * 20 }} className="mt-2">
-        <div className="bg-gray-100 p-2 rounded-lg border border-gray-200 max-w-2xl">
-          <div className="flex justify-between items-center mb-1">
-            <span className="font-medium text-sm">
-              {r.isAnonymous ? "Anonymous" : r.userId?.name}
-            </span>
-            <span className="text-xs text-gray-400">
-              {new Date(r.createdAt).toLocaleString()}
-            </span>
+  // Render replies with “Show more”
+  const renderReplies = (replies, level = 1, parentId = "") => {
+    const visibleCount = 2;
+    const isExpanded = expandedReplies[parentId];
+    const visibleReplies = isExpanded ? replies : replies.slice(0, visibleCount);
+
+    return (
+      <div>
+        {visibleReplies.map((r) => (
+          <div key={r._id} style={{ marginLeft: level * 20 }} className="mt-2">
+            <div className="bg-gray-100 p-2 rounded-lg border border-gray-200 max-w-2xl">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-medium text-sm">
+                  {r.isAnonymous ? "Anonymous" : r.userId?.name}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {new Date(r.createdAt).toLocaleString()}
+                </span>
+              </div>
+              <p className="text-gray-700 text-sm">{r.comment}</p>
+              <button
+                className="text-blue-600 text-xs mt-1"
+                onClick={() => setReplyTo({ ...r, isReview: false })}
+              >
+                Reply
+              </button>
+            </div>
+            {r.replies?.length > 0 &&
+              renderReplies(r.replies, level + 1, r._id)}
           </div>
+        ))}
 
-          <p className="text-gray-700 text-sm">{r.comment}</p>
-
+        {replies.length > visibleCount && (
           <button
-            className="text-blue-600 text-xs mt-1"
-            onClick={() => setReplyTo({ ...r, isReview: false })}
+            className="text-blue-600 text-xs mt-1 ml-5"
+            onClick={() =>
+              setExpandedReplies((prev) => ({
+                ...prev,
+                [parentId]: !prev[parentId],
+              }))
+            }
           >
-            Reply
+            {isExpanded
+              ? "Hide replies"
+              : `Show ${replies.length - visibleCount} more replies`}
           </button>
-        </div>
-
-        {r.replies.length > 0 && renderReplies(r.replies, level + 1)}
+        )}
       </div>
-    ));
+    );
   };
 
   if (loading)
     return <p className="text-center mt-20 text-gray-500">Loading...</p>;
   if (!faculty)
-    return (
-      <p className="text-center mt-20 text-red-500">Faculty not found</p>
-    );
+    return <p className="text-center mt-20 text-red-500">Faculty not found</p>;
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 flex justify-center">
       <div className="w-full max-w-3xl">
-
         <button
           className="mb-4 px-4 py-1 bg-white rounded-lg shadow border text-sm"
           onClick={() => router.back()}
@@ -144,11 +161,9 @@ export default function FacultyReviewsPage() {
           ← Back
         </button>
 
-        {/* Faculty header */}
         <div className="bg-white p-4 rounded-lg shadow border mb-6">
           <h1 className="text-xl font-bold">{faculty.name}</h1>
           <p className="text-sm text-gray-500">{faculty.initials}</p>
-
           <span className="mt-2 inline-block bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full text-sm">
             Avg Rating: {faculty.avgRating || 0} ⭐
           </span>
@@ -172,7 +187,6 @@ export default function FacultyReviewsPage() {
                 <span className="font-semibold text-sm">
                   {r.isAnonymous ? "Anonymous" : r.userId?.name}
                 </span>
-
                 {r.rating && (
                   <span className="text-blue-600 font-semibold text-sm">
                     {r.rating} ⭐
@@ -181,7 +195,6 @@ export default function FacultyReviewsPage() {
               </div>
 
               <p className="text-gray-800 text-sm mt-1">{r.comment}</p>
-
               {r.course && (
                 <p className="text-xs text-gray-400 mt-1">
                   Course: <span className="font-medium">{r.course}</span>
@@ -200,7 +213,6 @@ export default function FacultyReviewsPage() {
           ))
         )}
 
-        {/* Reply box */}
         {replyTo && (
           <form
             onSubmit={handleSubmit(onSubmitReply)}
@@ -211,7 +223,6 @@ export default function FacultyReviewsPage() {
               placeholder="Write a reply..."
               className="w-full border border-gray-300 p-2 rounded-lg text-sm mb-2"
             />
-
             <div className="flex justify-end gap-2">
               <button
                 type="button"
@@ -220,7 +231,6 @@ export default function FacultyReviewsPage() {
               >
                 Cancel
               </button>
-
               <button
                 type="submit"
                 className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
@@ -230,7 +240,6 @@ export default function FacultyReviewsPage() {
             </div>
           </form>
         )}
-
       </div>
     </div>
   );
