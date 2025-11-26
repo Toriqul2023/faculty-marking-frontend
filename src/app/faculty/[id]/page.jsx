@@ -13,7 +13,7 @@ export default function FacultyReviewsPage() {
   const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [replyTo, setReplyTo] = useState(null);
-  const [expandedReplies, setExpandedReplies] = useState({}); // track expanded replies
+  const [expandedReplies, setExpandedReplies] = useState({});
 
   const { register, handleSubmit, reset } = useForm();
 
@@ -70,7 +70,6 @@ export default function FacultyReviewsPage() {
     }
   };
 
-  // Build nested tree
   const buildTree = () => {
     const map = {};
     const tree = [];
@@ -95,7 +94,6 @@ export default function FacultyReviewsPage() {
 
   const nestedReviews = buildTree();
 
-  // Render replies with “Show more”
   const renderReplies = (replies, level = 1, parentId = "") => {
     const visibleCount = 2;
     const isExpanded = expandedReplies[parentId];
@@ -104,24 +102,27 @@ export default function FacultyReviewsPage() {
     return (
       <div>
         {visibleReplies.map((r) => (
-          <div key={r._id} style={{ marginLeft: level * 20 }} className="mt-2">
-            <div className="bg-gray-100 p-2 rounded-lg border border-gray-200 max-w-2xl">
+          <div key={r._id} style={{ marginLeft: level * 14 }} className="mt-2">
+            <div className="bg-gray-50 p-2 rounded-md border shadow-sm max-w-xl">
               <div className="flex justify-between items-center mb-1">
-                <span className="font-medium text-sm">
+                <span className="font-medium text-xs">
                   {r.isAnonymous ? "Anonymous" : r.userId?.name}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-[10px] text-gray-400">
                   {new Date(r.createdAt).toLocaleString()}
                 </span>
               </div>
-              <p className="text-gray-700 text-sm">{r.comment}</p>
+
+              <p className="text-gray-700 text-xs">{r.comment}</p>
+
               <button
-                className="text-blue-600 text-xs mt-1"
+                className="text-blue-600 text-[11px] mt-1 hover:underline"
                 onClick={() => setReplyTo({ ...r, isReview: false })}
               >
                 Reply
               </button>
             </div>
+
             {r.replies?.length > 0 &&
               renderReplies(r.replies, level + 1, r._id)}
           </div>
@@ -129,7 +130,7 @@ export default function FacultyReviewsPage() {
 
         {replies.length > visibleCount && (
           <button
-            className="text-blue-600 text-xs mt-1 ml-5"
+            className="text-blue-600 text-[11px] mt-1 ml-4 hover:underline"
             onClick={() =>
               setExpandedReplies((prev) => ({
                 ...prev,
@@ -148,92 +149,104 @@ export default function FacultyReviewsPage() {
 
   if (loading)
     return <p className="text-center mt-20 text-gray-500">Loading...</p>;
+
   if (!faculty)
     return <p className="text-center mt-20 text-red-500">Faculty not found</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 flex justify-center">
-      <div className="w-full max-w-3xl">
+    <div className="min-h-screen bg-gray-50 p-3 flex justify-center">
+      <div className="w-full max-w-2xl space-y-4">
+
+        {/* Back */}
         <button
-          className="mb-4 px-4 py-1 bg-white rounded-lg shadow border text-sm"
+          className="px-3 py-1 bg-white rounded-md shadow-sm border text-xs hover:bg-gray-50 transition"
           onClick={() => router.back()}
         >
           ← Back
         </button>
 
-        <div className="bg-white p-4 rounded-lg shadow border mb-6">
-          <h1 className="text-xl font-bold">{faculty.name}</h1>
-          <p className="text-sm text-gray-500">{faculty.initials}</p>
-          <span className="mt-2 inline-block bg-blue-100 text-blue-700 font-medium px-3 py-1 rounded-full text-sm">
-            Avg Rating: {faculty.avgRating || 0} ⭐
-          </span>
+        {/* Faculty Header */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <h1 className="text-lg font-bold text-gray-800">{faculty.name}</h1>
+          <p className="text-xs text-gray-500">{faculty.initials}</p>
+
+          <div className="mt-2 inline-flex items-center gap-1 bg-blue-100 text-blue-700 font-medium px-2 py-0.5 rounded-full text-xs">
+            ⭐ Avg Rating: {faculty.avgRating || 0}
+          </div>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-700 mb-3">
+        <h2 className="text-lg font-semibold text-gray-700">
           Student Reviews
         </h2>
 
+        {/* Reviews */}
         {nestedReviews.length === 0 ? (
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-xs bg-white p-3 rounded-lg shadow-sm border">
             No reviews yet. Be the first to add one!
           </p>
         ) : (
           nestedReviews.map((r) => (
             <div
               key={r._id}
-              className="bg-white p-3 rounded-lg shadow border mb-4 max-w-2xl"
+              className="bg-white p-3 rounded-lg shadow-sm border space-y-1"
             >
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-sm">
                   {r.isAnonymous ? "Anonymous" : r.userId?.name}
                 </span>
+
                 {r.rating && (
-                  <span className="text-blue-600 font-semibold text-sm">
+                  <span className="text-blue-600 font-semibold text-xs">
                     {r.rating} ⭐
                   </span>
                 )}
               </div>
 
-              <p className="text-gray-800 text-sm mt-1">{r.comment}</p>
+              <p className="text-gray-700 text-sm">{r.comment}</p>
+
               {r.course && (
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-[11px] text-gray-400">
                   Course: <span className="font-medium">{r.course}</span>
                 </p>
               )}
 
               <button
-                className="text-blue-600 text-xs mt-2"
+                className="text-blue-600 text-[11px] hover:underline"
                 onClick={() => setReplyTo({ ...r, isReview: true })}
               >
                 Reply
               </button>
 
-              {r.replies.length > 0 && renderReplies(r.replies)}
+              {r.replies.length > 0 && (
+                <div className="mt-2">{renderReplies(r.replies)}</div>
+              )}
             </div>
           ))
         )}
 
+        {/* Reply Input */}
         {replyTo && (
           <form
             onSubmit={handleSubmit(onSubmitReply)}
-            className="bg-white p-3 mt-5 rounded-lg shadow border max-w-2xl"
+            className="bg-white p-3 rounded-lg shadow-sm border space-y-2"
           >
             <textarea
               {...register("comment", { required: true })}
               placeholder="Write a reply..."
-              className="w-full border border-gray-300 p-2 rounded-lg text-sm mb-2"
+              className="w-full border border-gray-300 p-2 rounded-md text-sm focus:ring focus:ring-blue-100 outline-none"
             />
+
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                className="px-3 py-1 border rounded text-sm"
+                className="px-3 py-1 border rounded-md text-xs hover:bg-gray-50"
                 onClick={() => setReplyTo(null)}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
+                className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700 transition"
               >
                 Submit
               </button>
