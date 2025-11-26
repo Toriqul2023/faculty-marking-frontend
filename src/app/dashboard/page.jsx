@@ -136,13 +136,13 @@ export default function Dashboard() {
       </div>
 
       {/* Review Modal */}
-      {selectedFaculty && (
+       {selectedFaculty && (
         <ReviewModal
           faculty={selectedFaculty}
           onClose={handleCloseReview}
           onReviewSubmit={handleReviewSubmit}
         />
-      )}
+      )} 
     </div>
   );
 }
