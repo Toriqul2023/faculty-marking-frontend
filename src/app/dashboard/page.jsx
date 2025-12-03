@@ -13,25 +13,30 @@ export default function Dashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return router.push("/login");
+if (!token) return router.push("/login");
 
-    const fetchData = async () => {
-      try {
-        const resUser = await api.get("/users/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const resFaculty = await api.get("/faculty", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(resUser.data);
-        setFaculties(resFaculty.data);
-      } catch (err) {
-        localStorage.removeItem("token");
-        router.push("/login");
-      }
-    };
+const fetchData = async () => {
+  try {
+    const [resUser, resFaculty] = await Promise.all([
+      api.get("/users/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      api.get("/faculty", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
 
-    fetchData();
+    setUser(resUser.data);
+    setFaculties(resFaculty.data);
+
+  } catch (err) {
+    localStorage.removeItem("token");
+    router.push("/login");
+  }
+};
+
+fetchData();
+
   }, [router]);
 
   const logout = () => {
