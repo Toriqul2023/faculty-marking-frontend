@@ -17,34 +17,38 @@ export default function FacultyReviewsPage() {
 
   const { register, handleSubmit, reset } = useForm();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return router.push("/login");
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return router.push("/login");
 
-    const fetchData = async () => {
-      try {
-        const resFaculty = await api.get(`/faculty/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const resReviews = await api.get(`/reviews/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const resReplies = await api.get(`/reviews/replies/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  if (!id) return;
 
-        setFaculty(resFaculty.data);
-        setReviews(resReviews.data);
-        setReplies(resReplies.data);
-      } catch (err) {
-        alert(err.response?.data?.message || "Error fetching data");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const [resFaculty, resReviews, resReplies] = await Promise.all([
+        api.get(`/faculty/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        api.get(`/reviews/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        api.get(`/reviews/replies/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-    fetchData();
-  }, [id, router]);
+      setFaculty(resFaculty.data);
+      setReviews(resReviews.data);
+      setReplies(resReplies.data);
+    } catch (err) {
+      alert(err.response?.data?.message || "Error fetching data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [id]);
 
   const onSubmitReply = async (data) => {
     try {
